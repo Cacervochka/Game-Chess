@@ -1,1 +1,16 @@
 app
+
+textures/Black/Bishop-Black.svg
+textures/Black/King-Black.svg
+textures/Black/Pawn-Black.svg
+textures/Black/Knight-Black.svg
+textures/Black/Queen-Black.svg
+textures/Black/Rook-Black.svg
+
+textures/White/Bishop-White.svg
+textures/White/King-White.svg
+textures/White/Pawn-White.svg
+textures/White/Knight-White.svg
+textures/White/Queen-White.svg
+textures/White/Rook-White.svg
+
