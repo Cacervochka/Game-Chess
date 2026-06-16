@@ -175,31 +175,24 @@ bool King::isValidMove(int x,int y, Piece* (&gBoard)[8][8])
 
 bool Pawn::isValidMove(int x, int y, Piece* (&gBoard)[8][8])
 {
-    // 1. Базовые проверки границ доски и хода "на месте"
     if (x < 0 || x >= 8 || y < 0 || y >= 8) return false;
     if (this->x == x && this->y == y) return false;
 
-    // 2. Определяем правильное направление (для белых вверх, для черных вниз)
-    // Предполагаем: Piece::WHITE == 1 (идет уменьшать Y), Piece::BLACK == -1 (идет увеличивать Y)
     int direction = (this->getColor() == Piece::WHITE) ? -1 : 1;
 
     int deltaX = x - this->x;
     int deltaY = y - this->y;
 
-    // --- ВАРИАНТ А: Ход строго прямо (без взятия фигуры) ---
     if (deltaX == 0) 
     {
-        // Ход на 1 клетку вперед
         if (deltaY == direction) 
         {
-            if (gBoard[y][x] != nullptr) return false; // Клетка должна быть пустой
+            if (gBoard[y][x] != nullptr) return false;
             return true;
         }
         
-        // Ход на 2 клетки вперед (только если это первый ход)
         if (deltaY == 2 * direction && this->isFirstMove) 
         {
-            // Проверяем клетку прямо перед пешкой и финальную клетку
             int stepY = this->y + direction;
             if (gBoard[stepY][x] != nullptr || gBoard[y][x] != nullptr) {
                 return false; 
@@ -207,22 +200,18 @@ bool Pawn::isValidMove(int x, int y, Piece* (&gBoard)[8][8])
             return true;
         }
         
-        return false; // Любые другие шаги прямо (на 3 клетки или назад) запрещены
+        return false; 
     }
 
-    // --- ВАРИАНТ Б: Удар по диагонали (взятие фигуры) ---
     if (abs(deltaX) == 1 && deltaY == direction) 
     {
-        // На целевой клетке обязательно должен стоять враг
         if (gBoard[y][x] != nullptr && gBoard[y][x]->getColor() != this->getColor()) {
             return true;
         }
         
-        // (Опционально здесь можно будет позже запрограммировать взятие на проходе — En Passant)
         return false; 
     }
 
-    // Все остальные траектории для пешки нелегальны
     return false;
 }
 
