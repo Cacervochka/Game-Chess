@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string>
 
+void dumpBoard(Piece* (&gBoard)[8][8]);
+
 class Board
 {
     public:            

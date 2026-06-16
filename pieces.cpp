@@ -26,13 +26,13 @@ bool Rook::isValidMove(int x,int y, Piece* (&gBoard)[8][8])
 
     while(tempX != x || tempY != y)
     {
-        tempX += stepX;
-        tempY += stepY;
-
-        if(gBoard[tempY][tempX] != nullptr && tempX != x && tempY != y)
+        if(gBoard[tempY][tempX] != nullptr)
         {
             return false;
-        }
+        }             
+        
+        tempX += stepX;
+        tempY += stepY;      
     }
 
     if(gBoard[y][x] != nullptr && gBoard[y][x]->getColor() == this->getColor())
@@ -48,48 +48,42 @@ bool Bishop::isValidMove(int x,int y, Piece* (&gBoard)[8][8])
 {
     if(x < 0 || x >= 8 || y < 0 || y >= 8)
     {
-        printf("False out of range\n");
         return false;
     }
 
     if(this->x == x && this->y == y)
     {
-        printf("False x==x,y==y\n");
         return false;
     }
 
     if(abs(x - this->x) != abs(y - this->y))
     {
-        printf("False not on diagonal\n");
         return false;
     }
 
     int stepX = (x - this->x > 0) ? 1: -1;
     int stepY = (y - this->y > 0) ? 1: -1;
 
-    int tempX=this->x;
-    int tempY=this->y;
+    int tempX=this->x+stepX;
+    int tempY=this->y+stepY;
 
-    printf("Step X: %d, Step Y: %d \n", stepX,stepY);
     while(tempX != x && tempY != y)
     {
-        tempX += stepX;
-        tempY += stepY;
 
         if(gBoard[tempY][tempX] != nullptr && tempX != x && tempY != y)
         {
-            printf("False,piece on the diagonal\n");
             return false;
-        }
+        }        
+        
+        tempX += stepX;
+        tempY += stepY;
     }
 
     if(gBoard[y][x] != nullptr && (gBoard[y][x]->getColor() == this->getColor()))
     {
-        printf("False,colors\n");
         return false;
     }
 
-    printf("True\n");
     return true;
 }
 
@@ -143,9 +137,9 @@ bool Knight::isValidMove(int x,int y, Piece* (&gBoard)[8][8])
         return false;
     }
 
-    if(gBoard[y][x] != nullptr && gBoard[y][x]->getColor() != this->getColor())
+    if(gBoard[y][x] != nullptr && (gBoard[y][x]->getColor() == this->getColor()))
     {
-        return true;
+        return false;
     }
 
     return true;
@@ -179,66 +173,57 @@ bool King::isValidMove(int x,int y, Piece* (&gBoard)[8][8])
     return true;
 }
 
-bool Pawn::isValidMove(int x,int y, Piece* (&gBoard)[8][8])
+bool Pawn::isValidMove(int x, int y, Piece* (&gBoard)[8][8])
 {
-    if(x < 0 || x >= 8 || y < 0 || y >= 8)
-    {
-        return false;
-    }
+    // 1. Базовые проверки границ доски и хода "на месте"
+    if (x < 0 || x >= 8 || y < 0 || y >= 8) return false;
+    if (this->x == x && this->y == y) return false;
 
-    if(this->x == x && this->y == y)
-    {
-        return false;
-    }
+    // 2. Определяем правильное направление (для белых вверх, для черных вниз)
+    // Предполагаем: Piece::WHITE == 1 (идет уменьшать Y), Piece::BLACK == -1 (идет увеличивать Y)
+    int direction = (this->getColor() == Piece::WHITE) ? -1 : 1;
 
-    if(this->y==y && gBoard[y][x]!=nullptr)
-    {
-        return false;
-    }
+    int deltaX = x - this->x;
+    int deltaY = y - this->y;
 
-    int newY = abs(y - this->y);
-    int newX = abs(x - this->x);
-    
-    if((this->color==1 && y>this->y) || (this->color==-1 && y<this->y))
+    // --- ВАРИАНТ А: Ход строго прямо (без взятия фигуры) ---
+    if (deltaX == 0) 
     {
-        return false;
-    }
-
-    if(newX>1 || newY > 2)
-    {
-        return false;
-    }
-    
-    if(newY==2 && newX==1)
-    {
-        return false;
-    }
-
-    if(newY == 2 && !this->isFirstMove
-    )
-    {
-        return false;
-    }
-
-    if(newX == 1 && newY == 1)
-    {
-        if(gBoard[y][x] != nullptr && gBoard[y][x]->getColor() != this->getColor())
+        // Ход на 1 клетку вперед
+        if (deltaY == direction) 
         {
-            this->isFirstMove = false;
+            if (gBoard[y][x] != nullptr) return false; // Клетка должна быть пустой
             return true;
         }
-
-        return false;
-    }
-    else if(newX == 0 && newY == 1)
-    {
-        if(gBoard[y][x] != nullptr)
+        
+        // Ход на 2 клетки вперед (только если это первый ход)
+        if (deltaY == 2 * direction && this->isFirstMove) 
         {
-            return false;
+            // Проверяем клетку прямо перед пешкой и финальную клетку
+            int stepY = this->y + direction;
+            if (gBoard[stepY][x] != nullptr || gBoard[y][x] != nullptr) {
+                return false; 
+            }
+            return true;
         }
+        
+        return false; // Любые другие шаги прямо (на 3 клетки или назад) запрещены
     }
 
-    return true;
+    // --- ВАРИАНТ Б: Удар по диагонали (взятие фигуры) ---
+    if (abs(deltaX) == 1 && deltaY == direction) 
+    {
+        // На целевой клетке обязательно должен стоять враг
+        if (gBoard[y][x] != nullptr && gBoard[y][x]->getColor() != this->getColor()) {
+            return true;
+        }
+        
+        // (Опционально здесь можно будет позже запрограммировать взятие на проходе — En Passant)
+        return false; 
+    }
+
+    // Все остальные траектории для пешки нелегальны
+    return false;
 }
 
 bool Rook::loadTextureCheck()
