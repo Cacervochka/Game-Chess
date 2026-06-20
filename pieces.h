@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <map>
 
 class Piece {
     public:
@@ -50,10 +51,24 @@ class Piece {
             this->isFirstMove=false;
         }
 
+        bool getFirstMove()
+        {
+            return isFirstMove;
+        }
+
         virtual bool loadTextureCheck() = 0;
 
         SDL_Texture* loadTexture(std::string path)
         {
+            static std::map<std::string, SDL_Texture*> textureCache;
+
+            // 2. Ищем, не загружали ли мы этот файл ранее?
+            if (textureCache.find(path) != textureCache.end())
+            {
+                // Нашли! Возвращаем уже готовую текстуру, не трогая диск и память
+                return textureCache[path];
+            }
+
             SDL_Texture* newTexture = NULL;
             SDL_Surface* loadedSurface = IMG_Load(path.c_str());
             if(loadedSurface == NULL)
@@ -80,6 +95,12 @@ class Piece {
                 printf("Ошибка создания текстуры из %s! SDL: %s\n", path.c_str(), SDL_GetError());
                 exit(1);
             }
+
+            // 4. Сохраняем текстуру в кэш для последующих вызовов
+           if (newTexture != NULL) {
+                textureCache[path] = newTexture;
+            }
+
             return newTexture;
         }
 

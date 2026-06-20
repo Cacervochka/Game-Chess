@@ -61,10 +61,24 @@ void Game::update()
 }
 
 void Game::run() {
+	const int FPS = 12;
+	const int frameDelay = 1000 / FPS;
+
+	Uint32 frameStart;
+	int frameTime;
+
     while (isRunning) {
+		frameStart = SDL_GetTicks(); // Время начала кадра
         handleEvents();
         update();
         render();
+
+		frameTime = SDL_GetTicks() - frameStart; // Сколько времени ушло на кадр
+
+		// Если кадр посчитался слишком быстро, отдыхаем остаток времени
+		if (frameDelay > frameTime) {
+			SDL_Delay(frameDelay - frameTime);
+		}
     }
 }
 
@@ -77,15 +91,19 @@ void Game::handleEvents() {
         }
 
         SDL_Point pos = handleEvent(&e);
+		printf("Pos: %d	%d\n",pos.x,pos.y);
         if (pos.x != -1 && pos.y != -1) {
-            
+            SDL_Point piecePos = {pos.x/(SCREEN_WIDTH/8),pos.y / (SCREEN_HEIGHT / 8)};
             if (previousSelected.x == -1 && previousSelected.y == -1) {
-                if (board->isPiece(pos)) { 
+                if (board->isPiece(piecePos)) { 
                     previousSelected = pos;
                 }
             } 
             else {
-                board->handleMoveAttempt(previousSelected, pos);
+				SDL_Point from = {previousSelected.x/(SCREEN_WIDTH/8),previousSelected.y / (SCREEN_HEIGHT / 8)};
+    			SDL_Point to = {pos.x / (SCREEN_WIDTH / 8),pos.y / (SCREEN_HEIGHT / 8)};
+				printf("From: %d	%d\n To: %d		%d\n",from.x,from.y,to.x,to.y);
+                board->handleMoveAttempt(from, to);
                 previousSelected = {-1, -1};
             }
         }
@@ -95,8 +113,16 @@ void Game::handleEvents() {
 void Game::render() {
     SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
     SDL_RenderClear(gRenderer);
+	SDL_Point previusCell;
+	if(previousSelected.x!=-1 && previousSelected.y!=-1){
+		previusCell={previousSelected.x/(SCREEN_WIDTH/8),previousSelected.y / (SCREEN_HEIGHT / 8)};
+	}
+	else
+	{
+		previusCell={-1,-1};
+	}
 
-    board->draw(previousSelected);
+    board->draw(previusCell);
 
     SDL_RenderPresent(gRenderer);
 }

@@ -160,6 +160,16 @@ bool King::isValidMove(int x,int y, Piece* (&gBoard)[8][8])
     int newX = abs(x - this->x);
     int newY = abs(y - this->y);
 
+    if(newX==2 && y==this->y)
+    {
+        int tempX= (this->x>x) ? 3 : 5;
+        int stepX= (this->x>x) ? -1 : 1;
+        if(gBoard[this->y][tempX]!=nullptr && gBoard[this->y][tempX+stepX]!=nullptr){
+            return false;
+        }
+        return this->isFirstMove;
+    }
+
     if(newX > 1 || newY > 1)
     {
         return false;
@@ -217,6 +227,14 @@ bool Pawn::isValidMove(int x, int y, Piece* (&gBoard)[8][8])
 
 bool Rook::loadTextureCheck()
 {
+
+    // ИСПРАВЛЕНИЕ: Если текстура уже была загружена ранее, удаляем её из памяти!
+    if (texture != nullptr) {
+        SDL_DestroyTexture(texture);
+        texture = nullptr;
+    }
+
+
     std::string texturePath = (getColor() == WHITE) ? "textures/White/Rook-White.png" : 
     "textures/Black/Rook-Black.png";
     texture = loadTexture(texturePath);
@@ -225,6 +243,12 @@ bool Rook::loadTextureCheck()
 
 bool Bishop::loadTextureCheck()
 {
+    // ИСПРАВЛЕНИЕ: Если текстура уже была загружена ранее, удаляем её из памяти!
+    if (texture != nullptr) {
+        SDL_DestroyTexture(texture);
+        texture = nullptr;
+    }
+
     std::string texturePath = (getColor() == 1) ? "textures/White/Bishop-White.png" : 
     "textures/Black/Bishop-Black.png";
     texture = loadTexture(texturePath);
@@ -233,6 +257,12 @@ bool Bishop::loadTextureCheck()
 
 bool Queen::loadTextureCheck()
 {
+// ИСПРАВЛЕНИЕ: Если текстура уже была загружена ранее, удаляем её из памяти!
+    if (texture != nullptr) {
+        SDL_DestroyTexture(texture);
+        texture = nullptr;
+    }
+
     std::string texturePath = (getColor() == 1) ? "textures/White/Queen-White.png" : 
     "textures/Black/Queen-Black.png";
     texture = loadTexture(texturePath);
@@ -241,6 +271,12 @@ bool Queen::loadTextureCheck()
 
 bool Knight::loadTextureCheck()
 {
+    // ИСПРАВЛЕНИЕ: Если текстура уже была загружена ранее, удаляем её из памяти!
+    if (texture != nullptr) {
+        SDL_DestroyTexture(texture);
+        texture = nullptr;
+    }
+
     std::string texturePath = (getColor() == 1) ? "textures/White/Knight-White.png" : 
     "textures/Black/Knight-Black.png";
     texture = loadTexture(texturePath);
@@ -249,6 +285,12 @@ bool Knight::loadTextureCheck()
 
 bool King::loadTextureCheck()
 {
+    // ИСПРАВЛЕНИЕ: Если текстура уже была загружена ранее, удаляем её из памяти!
+    if (texture != nullptr) {
+        SDL_DestroyTexture(texture);
+        texture = nullptr;
+    }
+
     std::string texturePath = (getColor() == 1) ? "textures/White/King-White.png" : 
     "textures/Black/King-Black.png";
     texture = loadTexture(texturePath);
@@ -257,6 +299,12 @@ bool King::loadTextureCheck()
 
 bool Pawn::loadTextureCheck()
 {
+    // ИСПРАВЛЕНИЕ: Если текстура уже была загружена ранее, удаляем её из памяти!
+    if (texture != nullptr) {
+        SDL_DestroyTexture(texture);
+        texture = nullptr;
+    }
+
     std::string texturePath = (getColor() == 1) ? "textures/White/Pawn-White.png" : 
     "textures/Black/Pawn-Black.png";
     texture = loadTexture(texturePath);

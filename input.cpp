@@ -8,11 +8,12 @@ SDL_Point handleEvent(SDL_Event* e)
         const int cellY = e->button.y / (SCREEN_HEIGHT / 8);
 
         if (cellX >= 0 && cellX < 8 && cellY >= 0 && cellY < 8)
-        {
-            return SDL_Point{cellX, cellY};
+        {   
+            printf("%d  %d\n",e->button.x, e->button.y);
+            return SDL_Point{e->button.x, e->button.y};
         }
     }
 
-    return SDL_Point{-1, -1};
+    return SDL_Point{-1,-1};
 }
 

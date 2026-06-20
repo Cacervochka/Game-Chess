@@ -78,6 +78,10 @@ class Board
 
         bool handleMoveAttempt(SDL_Point from, SDL_Point to);
 
+        bool isCastle(SDL_Point from, SDL_Point to);
+
+        bool isEnPassant(SDL_Point from, SDL_Point to);
+
         bool isPiece(SDL_Point point);
 
         ~Board()
@@ -102,6 +106,8 @@ class Board
         SDL_Renderer* gRenderer;
         Piece* gBoard[8][8]{};
         PieceColor colorTurn;
+
+        SDL_Point previusMove;
 
         SDL_Point findKing(Piece::PieceColor kingColor) {
             for (int y = 0; y < 8; ++y) {

@@ -1,8 +1,8 @@
-#pragma once // Не забываем защиту заголовочного файла!
+#pragma once
 
 #include <stdio.h>
 #include <map>
-#include <SDL2/SDL.h> // <--- ОБЯЗАТЕЛЬНО ДОБАВИТЬ
+#include <SDL2/SDL.h>
 
 #include "config.h"
 #include "render.h"

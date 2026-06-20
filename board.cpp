@@ -79,14 +79,79 @@ bool Board::handleMoveAttempt(SDL_Point from, SDL_Point to)
     if (from.x < 0 || from.x >= 8 || from.y < 0 || from.y >= 8 ||
         to.x < 0 || to.x >= 8 || to.y < 0 || to.y >= 8) {
         return false;
-    }
-
+    }    
+    
     Piece* movingPiece = gBoard[from.y][from.x];
+
     if (movingPiece == nullptr ||
-        movingPiece->getColor() != static_cast<Piece::PieceColor>(colorTurn) ||
-        !movingPiece->isValidMove(to.x, to.y, gBoard)) {
+        movingPiece->getColor() != static_cast<Piece::PieceColor>(colorTurn)) {
         return false;
     }
+
+    if(movingPiece->getType()==1)
+    {
+        if(isEnPassant(from,to))
+        {
+            gBoard[from.y][from.x] = nullptr;
+            gBoard[to.y][to.x] = movingPiece;
+            delete gBoard[from.y][to.x];
+            gBoard[from.y][to.x]=nullptr;
+
+            movingPiece->setCoordinates(to.x, to.y);
+            movingPiece->firstMove();
+
+            colorTurn = (colorTurn == WHITE) ? BLACK : WHITE;
+    
+            dumpBoard(gBoard);
+
+            previusMove = to;
+
+            return true;
+        }
+    }
+
+    if(movingPiece->getType()==6)
+    {
+        if(isCastle(from,to))
+        {   
+            dumpBoard(gBoard);
+            if(to.x==2)
+            {
+                Piece* KING=gBoard[from.y][from.x];
+                Piece* ROOK=gBoard[from.y][0];
+                gBoard[to.y][to.x]=KING;
+                gBoard[from.y][3]=ROOK;
+                gBoard[from.y][0]=nullptr;
+                gBoard[from.y][from.x]=nullptr;
+                
+                KING->setCoordinates(to.x,to.y);
+                ROOK->setCoordinates(3,from.y);
+
+                KING->firstMove();
+                ROOK->firstMove();
+            }
+            else if(to.x==6)
+            {
+                Piece* KING=gBoard[from.y][from.x];
+                Piece* ROOK=gBoard[from.y][7];
+                gBoard[to.y][to.x]=KING;
+                gBoard[from.y][5]=ROOK;
+                gBoard[from.y][7]=nullptr;
+                gBoard[from.y][from.x]=nullptr;
+
+                KING->setCoordinates(to.x,to.y);
+                ROOK->setCoordinates(5,from.y);
+
+                KING->firstMove();
+                ROOK->firstMove();
+            }
+            dumpBoard(gBoard);
+            colorTurn = (colorTurn == WHITE) ? BLACK : WHITE;
+            return true;
+        }
+    }
+
+    if(!movingPiece->isValidMove(to.x, to.y, gBoard)){return false;}
 
     Piece* targetBackup = gBoard[to.y][to.x];
     
@@ -132,6 +197,8 @@ bool Board::handleMoveAttempt(SDL_Point from, SDL_Point to)
     colorTurn = (colorTurn == WHITE) ? BLACK : WHITE;
     
     dumpBoard(gBoard);
+
+    previusMove = to;
 
     return true;
 }
@@ -185,4 +252,103 @@ void dumpBoard(Piece* (&gBoard)[8][8])
     }
     fprintf(stderr, "    -----------------\n");
     fprintf(stderr, "    a b c d e f g h\n\n");
+}
+
+bool Board::isCastle(SDL_Point from, SDL_Point to)
+{
+    Piece* KING = gBoard[from.y][from.x];
+    if (KING == nullptr || !KING->getFirstMove()) return false;
+    if (from.y != to.y) return false;
+
+    if (isCheck(KING->getColor())) return false;
+
+    if (to.x == 2) {
+        if (gBoard[from.y][0] == nullptr || gBoard[from.y][1] != nullptr 
+            || gBoard[from.y][2] != nullptr || gBoard[from.y][3] != nullptr) return false;
+
+        if (!gBoard[from.y][0]->getFirstMove()) return false;
+
+        int fieldsToCheck[] = {3, 2};
+        for (int nextX : fieldsToCheck) {
+            gBoard[from.y][from.x] = nullptr;
+            gBoard[from.y][nextX] = KING;
+
+            bool isThreatened = isCheck(KING->getColor());
+
+            gBoard[from.y][nextX] = nullptr;
+            gBoard[from.y][from.x] = KING;
+
+            if (isThreatened) return false;
+        }
+    }
+    else if (to.x == 6) {
+        if (gBoard[from.y][7] == nullptr || gBoard[from.y][6] != nullptr 
+            || gBoard[from.y][5] != nullptr) return false;
+
+        if (!gBoard[from.y][7]->getFirstMove()) return false;
+
+        int fieldsToCheck[] = {5, 6};
+        for (int nextX : fieldsToCheck) {
+            gBoard[from.y][from.x] = nullptr;
+            gBoard[from.y][nextX] = KING;
+
+            bool isThreatened = isCheck(KING->getColor());
+
+            gBoard[from.y][nextX] = nullptr;
+            gBoard[from.y][from.x] = KING;
+
+            if (isThreatened) return false;
+        }
+    }
+    else {
+        return false;
+    }
+
+    return true; 
+}
+
+bool Board::isEnPassant(SDL_Point from, SDL_Point to)
+{
+    Piece* target=gBoard[from.y][from.x];
+
+    if(target->getType()!=1){return false;}    
+    
+    if(from.x == to.x || abs(from.x-to.x)>1)
+    {
+        return false;
+    }
+
+    if((target->getColor()==1 && from.y!=3) || (target->getColor()==-1 && from.y!=4))
+    {
+        return false;
+    }
+
+    if(gBoard[from.y][to.x]==nullptr || gBoard[from.y][to.x]->getType()!=1)
+    {
+        return false;
+    }
+
+    if(from.y!=previusMove.y || to.x!=previusMove.x)
+    {
+        return false;
+    }
+
+    Piece* targetBackup = gBoard[from.y][to.x];
+
+    gBoard[from.y][from.x] = nullptr;
+    gBoard[to.y][to.x] = target;
+
+    gBoard[from.y][to.x]=nullptr;
+
+    bool isThreatened = isCheck(target->getColor());
+
+    gBoard[from.y][to.x]=targetBackup;
+
+    gBoard[from.y][from.x] = target;
+    gBoard[to.y][to.x] = nullptr;
+
+    if (isThreatened) return false;
+
+    return true;
+
 }
